@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}My Trips{% endblock %}
+{% block content %}
+<section class="section"><div class="container">
+  <div class="dashboard-header"><div><h1>My <span class="gradient-text">Trips</span></h1><p>Plans saved to your travel journal.</p></div><a href="{{ url_for('plan_trip') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Plan a Trip</a></div>
+  {% if trips %}<div class="trips-list">
+    {% for trip in trips %}<a href="{{ url_for('trip_detail', trip_id=trip.id) }}" class="trip-card-horizontal"><div class="trip-card-icon"><i class="fas fa-plane-departure"></i></div><div class="trip-card-info"><h3>{{ trip.title }}</h3><p>{{ trip.duration_days }} days · {{ trip.budget_level }} · {{ trip.travelers }} traveler{% if trip.travelers != 1 %}s{% endif %}</p></div><div class="trip-card-date">{{ trip.created_at.strftime('%b %d, %Y') }}</div></a>{% endfor %}
+  </div>{% else %}<div class="card empty-state"><i class="fas fa-suitcase-rolling"></i><h2>No trips yet</h2><p>Create your first AI-powered itinerary.</p><a href="{{ url_for('plan_trip') }}" class="btn btn-primary">Plan a trip</a></div>{% endif %}
+</div></section>
+{% endblock %}

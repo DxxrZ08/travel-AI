@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<!-- ── Hero Section ── -->
+<section class="hero">
+    <div class="hero-bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
+    <div class="hero-content">
+        <h1 class="hero-title">
+            Explore the World with
+            <span class="gradient-text">AI-Powered</span> Travel Planning
+        </h1>
+        <p class="hero-subtitle">
+            Get personalized itineraries, smart budget estimates, and local recommendations — all powered by artificial intelligence.
+        </p>
+        <div class="hero-buttons">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('plan_trip') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-route"></i> Plan a Trip
+                </a>
+                <a href="{{ url_for('destinations') }}" class="btn btn-outline btn-lg">
+                    <i class="fas fa-compass"></i> Explore Destinations
+                </a>
+            {% else %}
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-rocket"></i> Get Started Free
+                </a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline btn-lg">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+            {% endif %}
+        </div>
+
+        <!-- Stats -->
+        <div class="hero-stats">
+            <div class="stat-item">
+                <span class="stat-number">{{ stats.destinations }}+</span>
+                <span class="stat-label">Destinations</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">{{ stats.users }}+</span>
+                <span class="stat-label">Travelers</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">{{ stats.trips }}+</span>
+                <span class="stat-label">Trips Planned</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Features Section ── -->
+<section class="section" id="features">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Why <span class="gradient-text">TravelAI</span>?</h2>
+            <p class="section-subtitle">Everything you need to plan the perfect trip, powered by cutting-edge AI.</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #6C63FF, #00D2FF);">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h3>AI-Powered Plans</h3>
+                <p>Get detailed day-by-day itineraries tailored to your preferences, budget, and travel style.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #FF6584, #FFD166);">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <h3>Smart Budget</h3>
+                <p>Realistic cost breakdowns for accommodation, food, transport, and activities.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #00D2FF, #06D6A0);">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h3>Travel Chatbot</h3>
+                <p>Ask anything — visa info, packing tips, local customs, safety — and get instant answers.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #FFD166, #FF6584);">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h3>Reviews & Ratings</h3>
+                <p>Read and share authentic travel reviews to make informed decisions.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #06D6A0, #6C63FF);">
+                    <i class="fas fa-search-location"></i>
+                </div>
+                <h3>Discover Places</h3>
+                <p>Browse curated destinations with filters for budget, category, and region.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg, #845EC2, #FF6F91);">
+                    <i class="fas fa-save"></i>
+                </div>
+                <h3>Save & Export</h3>
+                <p>Save your trip plans and access them anytime. Your travel diary in one place.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Featured Destinations ── -->
+{% if featured %}
+<section class="section section-dark">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Featured <span class="gradient-text">Destinations</span></h2>
+            <p class="section-subtitle">Hand-picked destinations loved by travelers worldwide.</p>
+        </div>
+
+        <div class="destinations-grid">
+            {% for dest in featured %}
+            <a href="{{ url_for('destination_detail', dest_id=dest.id) }}" class="dest-card">
+                <div class="dest-image" style="background-image: linear-gradient(135deg, rgba(108,99,255,.35), rgba(210,243,107,.20)), url('{{ dest.image_url or '/static/images/destination-placeholder.svg' }}');">
+                    <div class="dest-overlay">
+                        <span class="dest-category"><i class="fas fa-tag"></i> {{ dest.category }}</span>
+                    </div>
+                </div>
+                <div class="dest-info">
+                    <h3>{{ dest.name }}</h3>
+                    <p class="dest-location"><i class="fas fa-map-marker-alt"></i> {{ dest.city }}{% if dest.country %}, {{ dest.country }}{% endif %}</p>
+                    <div class="dest-meta">
+                        <span class="dest-rating"><i class="fas fa-star"></i> {{ dest.rating }}</span>
+                        <span class="dest-price"><i class="fas fa-dollar-sign"></i> {{ dest.avg_cost_per_day|int }}/day</span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+
+        <div class="section-cta">
+            <a href="{{ url_for('destinations') }}" class="btn btn-outline btn-lg">
+                View All Destinations <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- ── CTA Section ── -->
+<section class="section cta-section">
+    <div class="container">
+        <div class="cta-content">
+            <h2>Ready to Start Your Adventure?</h2>
+            <p>Join thousands of travelers who plan smarter with AI. It's free to get started!</p>
+            {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-rocket"></i> Create Free Account
+            </a>
+            {% else %}
+            <a href="{{ url_for('plan_trip') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-route"></i> Plan Your Next Trip
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ trip.title }}{% endblock %}
+{% block content %}
+<section class="section"><div class="container">
+  <div class="dashboard-header"><div><h1>{{ trip.title }}</h1><p><i class="fas fa-location-dot"></i> {{ trip.destination_name }} · {{ trip.duration_days }} days</p></div><a href="{{ url_for('my_trips') }}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> My Trips</a></div>
+  <div class="card trip-details-summary"><p><strong>Budget:</strong> {{ trip.budget_level }}</p><p><strong>Travelers:</strong> {{ trip.travelers }}</p><p><strong>Style:</strong> {{ trip.travel_style }}</p>{% if trip.start_date %}<p><strong>Start:</strong> {{ trip.start_date.strftime('%B %d, %Y') }}</p>{% endif %}</div>
+
+  <section class="card trip-progress-card" id="tripProgress" data-trip-id="{{ trip.id }}">
+    <div class="trip-progress-heading">
+      <div>
+        <span class="suggestion-eyebrow">TRIP MILESTONES</span>
+        <h2>Your trip progress</h2>
+      </div>
+      <div class="trip-progress-score">
+        <strong id="milestoneProgressCount">0 / 0</strong>
+        <span>completed</span>
+      </div>
+    </div>
+    <div class="trip-progress-track" aria-label="Trip completion">
+      <span id="tripProgressBar"></span>
+    </div>
+    <p class="local-photo-note"><i class="fas fa-shield-halved"></i> Photos are not stored by this app or uploaded. Save each one to your device; previews disappear when you leave this page.</p>
+    <div id="milestoneList" class="milestone-list"></div>
+  </section>
+
+  <article class="card markdown-content">{{ trip.itinerary|md|safe }}</article>
+  <form method="post" action="{{ url_for('delete_trip', trip_id=trip.id) }}" class="mt-2" onsubmit="return confirm('Delete this trip?');"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Delete Trip</button></form>
+</div></section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/trip_milestones.js') }}"></script>
+{% endblock %}

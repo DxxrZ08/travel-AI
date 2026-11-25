@@ -1,0 +1,28 @@
+.env
+.env.*
+!.env.example
+**/serviceAccountKey.json
+**/*service-account*.json
+**/*service_account*.json
+**/*firebase-adminsdk*.json
+**/*.pem
+**/*.p12
+
+# Local Python artifacts
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local databases and user records
+/instance/
+/data/user_trips_dataset.csv
+
+# Optional external training datasets; regenerate with scripts when licensed
+/data/trace_pois.json
+/data/trace_scenarios.json
+/data/wanderlust_destinations_train.json
+/data/wanderlust_pois_train.json
+
+# Local editor configuration
+/.vscode/

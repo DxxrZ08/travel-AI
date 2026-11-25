@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<section class="dashboard-page">
+    <div class="container">
+        <header class="dashboard-hero">
+            <div class="dashboard-hero-copy">
+                <p class="dashboard-kicker"><i class="fas fa-compass"></i> YOUR TRAVEL SPACE</p>
+                <h1>Welcome back, <span>{{ current_user.full_name or current_user.username }}</span></h1>
+                <p>Every great journey starts with an idea. Pick up where you left off or plan somewhere new.</p>
+                <div class="dashboard-hero-actions">
+                    <a href="{{ url_for('plan_trip') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Plan a trip
+                    </a>
+                    <a href="{{ url_for('destinations') }}" class="btn btn-outline">
+                        Explore destinations <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="dashboard-hero-art" aria-hidden="true">
+                <div class="dashboard-art-orbit"></div>
+                <div class="dashboard-art-globe"><i class="fas fa-earth-americas"></i></div>
+                <span class="dashboard-art-label"><i class="fas fa-location-dot"></i> YOUR NEXT ADVENTURE</span>
+            </div>
+        </header>
+
+        <section class="dashboard-stats" aria-label="Your travel activity">
+            <article class="dashboard-stat">
+                <span class="dashboard-stat-icon stat-icon-trips"><i class="fas fa-suitcase-rolling"></i></span>
+                <div>
+                    <span class="dashboard-stat-label">Trips planned</span>
+                    <strong>{{ trip_count }}</strong>
+                </div>
+            </article>
+            <article class="dashboard-stat">
+                <span class="dashboard-stat-icon stat-icon-reviews"><i class="fas fa-star"></i></span>
+                <div>
+                    <span class="dashboard-stat-label">Reviews shared</span>
+                    <strong>{{ review_count }}</strong>
+                </div>
+            </article>
+            <article class="dashboard-stat dashboard-stat-favorite">
+                <span class="dashboard-stat-icon stat-icon-favorite"><i class="fas fa-heart"></i></span>
+                <div>
+                    <span class="dashboard-stat-label">Favorite destination</span>
+                    <strong>{{ current_user.favorite_destination or 'Not picked yet' }}</strong>
+                </div>
+            </article>
+        </section>
+
+        <section class="dashboard-section">
+            <div class="dashboard-section-heading">
+                <div>
+                    <p class="dashboard-kicker">MAKE IT HAPPEN</p>
+                    <h2>What would you like to do?</h2>
+                </div>
+            </div>
+            <div class="dashboard-actions">
+                <a href="{{ url_for('plan_trip') }}" class="dashboard-action">
+                    <span class="dashboard-action-icon"><i class="fas fa-route"></i></span>
+                    <span class="dashboard-action-copy"><strong>Plan a trip</strong><small>Build your next itinerary</small></span>
+                    <i class="fas fa-arrow-up-right-from-square dashboard-action-arrow"></i>
+                </a>
+                <a href="{{ url_for('destinations') }}" class="dashboard-action">
+                    <span class="dashboard-action-icon"><i class="fas fa-map-location-dot"></i></span>
+                    <span class="dashboard-action-copy"><strong>Explore places</strong><small>Find somewhere inspiring</small></span>
+                    <i class="fas fa-arrow-up-right-from-square dashboard-action-arrow"></i>
+                </a>
+                <a href="{{ url_for('budget_calculator') }}" class="dashboard-action">
+                    <span class="dashboard-action-icon"><i class="fas fa-wallet"></i></span>
+                    <span class="dashboard-action-copy"><strong>Estimate a budget</strong><small>Make your plans practical</small></span>
+                    <i class="fas fa-arrow-up-right-from-square dashboard-action-arrow"></i>
+                </a>
+                <a href="{{ url_for('chatbot') }}" class="dashboard-action">
+                    <span class="dashboard-action-icon"><i class="fas fa-wand-magic-sparkles"></i></span>
+                    <span class="dashboard-action-copy"><strong>Ask the travel assistant</strong><small>Get ideas for your journey</small></span>
+                    <i class="fas fa-arrow-up-right-from-square dashboard-action-arrow"></i>
+                </a>
+                <a href="{{ url_for('profile') }}" class="dashboard-action">
+                    <span class="dashboard-action-icon"><i class="fas fa-user-gear"></i></span>
+                    <span class="dashboard-action-copy"><strong>Update your profile</strong><small>Keep your preferences current</small></span>
+                    <i class="fas fa-arrow-up-right-from-square dashboard-action-arrow"></i>
+                </a>
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <div class="dashboard-section-heading">
+                <div>
+                    <p class="dashboard-kicker">YOUR JOURNEY</p>
+                    <h2>Recent trips</h2>
+                </div>
+                {% if recent_trips %}
+                <a href="{{ url_for('my_trips') }}" class="dashboard-text-link">View all trips <i class="fas fa-arrow-right"></i></a>
+                {% endif %}
+            </div>
+            {% if recent_trips %}
+            <div class="dashboard-trips">
+                {% for trip in recent_trips %}
+                <a href="{{ url_for('trip_detail', trip_id=trip.id) }}" class="dashboard-trip">
+                    <span class="dashboard-trip-icon"><i class="fas fa-plane-departure"></i></span>
+                    <span class="dashboard-trip-info">
+                        <strong>{{ trip.title }}</strong>
+                        <small>{{ trip.duration_days }} days <span>·</span> {{ trip.budget_level }} budget <span>·</span> {{ trip.travelers }} travelers</small>
+                    </span>
+                    <span class="dashboard-trip-date">{{ trip.created_at.strftime('%b %d, %Y') }}</span>
+                    <i class="fas fa-arrow-right dashboard-trip-arrow"></i>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="dashboard-empty">
+                <span class="dashboard-empty-icon"><i class="fas fa-suitcase-rolling"></i></span>
+                <div>
+                    <h3>Your next trip starts here</h3>
+                    <p>You haven’t planned a trip yet. Create one and keep all your details in one place.</p>
+                </div>
+                <a href="{{ url_for('plan_trip') }}" class="btn btn-primary">Start planning <i class="fas fa-arrow-right"></i></a>
+            </div>
+            {% endif %}
+        </section>
+
+        {% if featured %}
+        <section class="dashboard-section dashboard-destinations-section">
+            <div class="dashboard-section-heading">
+                <div>
+                    <p class="dashboard-kicker">A LITTLE INSPIRATION</p>
+                    <h2>Places to put on your map</h2>
+                </div>
+                <a href="{{ url_for('destinations') }}" class="dashboard-text-link">Browse destinations <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="destinations-grid grid-4 dashboard-destinations">
+                {% for dest in featured %}
+                <a href="{{ url_for('destination_detail', dest_id=dest.id) }}" class="dest-card dest-card-sm dashboard-destination">
+                    <div class="dest-image" style="background-image: linear-gradient(180deg, rgba(12, 24, 19, .02) 35%, rgba(12, 24, 19, .78) 100%), url('{{ dest.image_url or '/static/images/destination-placeholder.svg' }}');">
+                        <span class="dest-category">{{ dest.category }}</span>
+                    </div>
+                    <div class="dest-info">
+                        <h3>{{ dest.name }}</h3>
+                        <div class="dest-meta">
+                            <span>{{ dest.country }}</span>
+                            <span class="dest-rating"><i class="fas fa-star"></i> {{ dest.rating }}</span>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

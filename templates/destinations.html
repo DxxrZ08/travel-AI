@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Destinations{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h1>Explore <span class="gradient-text">Destinations</span></h1>
+            <p class="section-subtitle">Find your perfect travel destination</p>
+        </div>
+
+        <!-- Category Pills -->
+        <div class="category-pills">
+            <a href="{{ url_for('destinations', search=search, country=country, sort=sort) }}" class="category-pill {% if not category %}active{% endif %}">🌍 All</a>
+            {% for cat in categories %}
+            <a href="{{ url_for('destinations', category=cat, search=search, country=country, sort=sort) }}" class="category-pill {% if category == cat %}active{% endif %}">
+                {% if cat == 'Beach' %}🏖️{% elif cat == 'Mountain' %}🏔️{% elif cat == 'City' %}🏙️{% elif cat == 'Cultural' %}🏛️{% elif cat == 'Historical' %}🏰{% elif cat == 'Nature' %}🌿{% elif cat == 'Romantic' %}💕{% elif cat == 'Coastal' %}🌊{% elif cat == 'Adventure' %}🧗{% else %}📍{% endif %}
+                {{ cat }}
+            </a>
+            {% endfor %}
+        </div>
+
+        <!-- Search & Filters -->
+        <div class="filter-bar">
+            <form method="GET" class="filter-form" id="filterForm">
+                <input type="hidden" name="category" value="{{ category }}">
+                <div class="filter-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="search" placeholder="Search destinations..." value="{{ search }}" id="searchInput">
+                </div>
+                <div class="filter-selects">
+                    <select name="country" onchange="document.getElementById('filterForm').submit()">
+                        <option value="">All Countries</option>
+                        {% for c in countries %}
+                        <option value="{{ c }}" {% if country == c %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="sort" onchange="document.getElementById('filterForm').submit()">
+                        <option value="rating" {% if sort == 'rating' %}selected{% endif %}>⭐ Top Rated</option>
+                        <option value="cost_low" {% if sort == 'cost_low' %}selected{% endif %}>💰 Price: Low → High</option>
+                        <option value="cost_high" {% if sort == 'cost_high' %}selected{% endif %}>💎 Price: High → Low</option>
+                        <option value="name" {% if sort == 'name' %}selected{% endif %}>🔤 Name A-Z</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-search"></i> Search</button>
+                {% if search or category or country %}
+                <a href="{{ url_for('destinations') }}" class="clear-filters-btn"><i class="fas fa-times-circle"></i> Clear Filters</a>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Result Count -->
+        <div class="result-count-badge">
+            <i class="fas fa-globe-americas"></i> Showing <strong>{{ pagination.total }}</strong> destination{{ 's' if pagination.total != 1 else '' }}
+            {% if search %} matching "<em>{{ search }}</em>"{% endif %}
+            {% if category %} in <em>{{ category }}</em>{% endif %}
+            {% if country %} from <em>{{ country }}</em>{% endif %}
+        </div>
+
+        <!-- Results -->
+        {% if destinations %}
+        <div class="destinations-grid">
+            {% for dest in destinations %}
+            <a href="{{ url_for('destination_detail', dest_id=dest.id) }}" class="dest-card">
+                <div class="dest-image" style="background-image: linear-gradient(135deg, rgba(108,99,255,.35), rgba(210,243,107,.20)), url('{{ dest.image_url or '/static/images/destination-placeholder.svg' }}');">
+                    <div class="dest-overlay">
+                        <span class="dest-category"><i class="fas fa-tag"></i> {{ dest.category }}</span>
+                        {% if dest.is_featured %}
+                        <span class="dest-badge">⭐ Featured</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="dest-info">
+                    <h3>{{ dest.name }}</h3>
+                    <p class="dest-location"><i class="fas fa-map-marker-alt"></i> {{ dest.city }}{% if dest.country %}, {{ dest.country }}{% endif %}</p>
+                    <p class="dest-desc">{{ dest.description[:100] }}{% if dest.description|length > 100 %}...{% endif %}</p>
+                    <div class="dest-meta">
+                        <span class="dest-rating"><i class="fas fa-star"></i> {{ dest.rating }}</span>
+                        <span class="dest-price"><i class="fas fa-dollar-sign"></i> {{ dest.avg_cost_per_day|int }}/day</span>
+                        <span class="dest-time"><i class="fas fa-clock"></i> {{ dest.best_time }}</span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+        <div class="pagination">
+            {% if pagination.has_prev %}
+            <a href="?page={{ pagination.prev_num }}&search={{ search }}&category={{ category }}&country={{ country }}&sort={{ sort }}" class="page-link"><i class="fas fa-chevron-left"></i></a>
+            {% endif %}
+            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if p %}
+                    <a href="?page={{ p }}&search={{ search }}&category={{ category }}&country={{ country }}&sort={{ sort }}" class="page-link {% if p == pagination.page %}active{% endif %}">{{ p }}</a>
+                {% else %}
+                    <span class="page-ellipsis">...</span>
+                {% endif %}
+            {% endfor %}
+            {% if pagination.has_next %}
+            <a href="?page={{ pagination.next_num }}&search={{ search }}&category={{ category }}&country={{ country }}&sort={{ sort }}" class="page-link"><i class="fas fa-chevron-right"></i></a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-map-marked-alt"></i>
+            <h3>No destinations found</h3>
+            <p>Try adjusting your search or filters.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

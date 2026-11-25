@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Aster Watches — thoughtfully designed watches for every moment.">
+  <title>Aster Watches | Timeless by design</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Aster Watches home">ASTER<span>.</span></a>
+    <nav class="main-nav" aria-label="Main navigation">
+      <a class="active" href="index.html">Home</a>
+      <a href="collection.html">Collection</a>
+      <a href="#story">Our story</a>
+    </nav>
+    <button class="cart-button" id="cartButton" type="button" aria-label="Open shopping bag">
+      Bag <span id="cartCount">0</span>
+    </button>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">The new signature series</p>
+        <h1>Time, refined.</h1>
+        <p>Modern watches made with quiet confidence. Designed for everyday moments and the journeys between them.</p>
+        <a class="button" href="collection.html">Explore the collection</a>
+      </div>
+      <div class="hero-image" role="img" aria-label="Elegant silver watch"></div>
+    </section>
+
+    <section class="featured" id="story">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Aster favourites</p>
+          <h2>Made to stay with you</h2>
+        </div>
+        <a href="collection.html">View all watches →</a>
+      </div>
+      <div class="product-grid">
+        <article class="product-card">
+          <a href="collection.html#solstice"><img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=85" alt="Silver Solstice watch"></a>
+          <div class="product-info"><div><h3>Solstice</h3><p>Moonlight Steel</p></div><strong>$189</strong></div>
+        </article>
+        <article class="product-card">
+          <a href="collection.html#nocturne"><img src="https://images.unsplash.com/photo-1524592094714-0f0654e20314?auto=format&fit=crop&w=900&q=85" alt="Black Nocturne watch"></a>
+          <div class="product-info"><div><h3>Nocturne</h3><p>Midnight Leather</p></div><strong>$215</strong></div>
+        </article>
+        <article class="product-card">
+          <a href="collection.html#terra"><img src="https://images.unsplash.com/photo-1547996160-81dfa63595aa?auto=format&fit=crop&w=900&q=85" alt="Classic Terra watch"></a>
+          <div class="product-info"><div><h3>Terra</h3><p>Warm Sand</p></div><strong>$199</strong></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="promise">
+      <p class="eyebrow">Built for daily life</p>
+      <h2>Considered details.<br>Timeless character.</h2>
+      <div class="promise-items">
+        <div><strong>2 year</strong><span>Warranty</span></div>
+        <div><strong>5 ATM</strong><span>Water resistant</span></div>
+        <div><strong>Free</strong><span>Delivery over $150</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer><a class="brand" href="index.html">ASTER<span>.</span></a><p>Designed for wherever time takes you.</p><p>© 2026 Aster Watches</p></footer>
+  <div class="bag-panel" id="bagPanel" aria-hidden="true">
+    <div class="bag-header"><h2>Your bag</h2><button id="closeBag" aria-label="Close bag">×</button></div>
+    <div id="bagItems"><p>Your bag is empty.</p></div>
+  </div>
+  <div class="overlay" id="overlay"></div>
+  <script src="script.js"></script>
+</body>
+</html>

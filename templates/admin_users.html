@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+<section class="account-section admin-panel-page">
+    <div class="container account-container">
+        <header class="account-heading admin-heading admin-panel-heading">
+            <div>
+                <p class="auth-eyebrow"><i class="fas fa-shield-halved"></i> TRAVELAI / ADMINISTRATION</p>
+                <h1>Manage accounts</h1>
+                <p>Search registered accounts and filter by access role.</p>
+            </div>
+            <a class="btn btn-outline admin-overview-action" href="{{ url_for('admin_dashboard') }}"><i class="fas fa-arrow-left"></i> Operations overview</a>
+        </header>
+        <form class="admin-filters" method="GET">
+            <label class="admin-search"><span>Search accounts</span><div><i class="fas fa-magnifying-glass"></i><input name="search" value="{{ search }}" placeholder="Name, username, or email"></div></label>
+            <label class="admin-role-filter"><span>Account role</span><select name="role"><option value="all" {% if role == 'all' %}selected{% endif %}>All roles</option><option value="user" {% if role == 'user' %}selected{% endif %}>Users</option><option value="admin" {% if role == 'admin' %}selected{% endif %}>Administrators</option></select></label>
+            <button type="submit" class="btn btn-primary admin-filter-button"><i class="fas fa-sliders"></i> Apply filters</button>
+        </form>
+        <div class="admin-table-section">
+            <div class="admin-table-heading">
+                <div>
+                    <p class="admin-section-kicker">USER DIRECTORY</p>
+                    <h2>Accounts <span class="admin-result-count">{{ users|length }}</span></h2>
+                    <p>Account access is assigned by an administrator.</p>
+                </div>
+            </div>
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead><tr><th>Account</th><th>Email</th><th>Travel style</th><th>Role</th><th>Joined</th></tr></thead>
+                    <tbody>
+                    {% for user in users %}
+                        <tr>
+                            <td><span class="admin-account-avatar">{{ (user.full_name or user.username)[0]|upper }}</span><span class="admin-account-details"><strong>{{ user.full_name or user.username }}</strong><small>@{{ user.username }}</small></span></td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.travel_style or 'Not set' }}</td>
+                            <td><span class="role-badge {% if user.is_admin %}role-admin{% endif %}">{{ user.role|title }}</span></td>
+                            <td>{{ user.created_at.strftime('%b %d, %Y') }}</td>
+                        </tr>
+                    {% else %}
+                        <tr><td class="admin-empty" colspan="5">No matching accounts.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

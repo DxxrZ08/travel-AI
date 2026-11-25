@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}{{ destination.name }}{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <!-- Destination Hero -->
+        <div class="dest-hero" style="background-image: linear-gradient(135deg, rgba(17,23,19,.35), rgba(108,99,255,.30)), url('{{ destination.image_url or '/static/images/destination-placeholder.svg' }}');">
+            <div class="dest-hero-overlay">
+                <div class="dest-hero-content">
+                    <span class="dest-category-tag">{{ destination.category }}</span>
+                    <h1>{{ destination.name }}</h1>
+                    <p class="dest-hero-location"><i class="fas fa-map-marker-alt"></i> {{ destination.city }}{% if destination.state %}, {{ destination.state }}{% endif %}{% if destination.country %}, {{ destination.country }}{% endif %}</p>
+                    <div class="dest-hero-stats">
+                        <span><i class="fas fa-star"></i> {{ destination.rating }} Rating</span>
+                        <span><i class="fas fa-dollar-sign"></i> {{ destination.avg_cost_per_day|int }} {{ destination.currency }}/day</span>
+                        <span><i class="fas fa-calendar-alt"></i> {{ destination.best_time }}</span>
+                        <span><i class="fas fa-comments"></i> {{ destination.review_count }} Reviews</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dest-detail-grid">
+            <!-- Main Content -->
+            <div class="dest-main">
+                <div class="card">
+                    <h2><i class="fas fa-info-circle"></i> About</h2>
+                    <p>{{ destination.description }}</p>
+                </div>
+
+                {% if destination.highlights %}
+                <div class="card">
+                    <h2><i class="fas fa-gem"></i> Highlights</h2>
+                    <div class="highlights-grid">
+                        {% for highlight in destination.highlights.split(',') %}
+                        <div class="highlight-tag"><i class="fas fa-check-circle"></i> {{ highlight.strip() }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if pois %}
+                <div class="card">
+                    <h2><i class="fas fa-map-marked-alt"></i> Top Recommended Spots (Hotels, Dining & Attractions)</h2>
+                    <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                        Verified points of interest curated from travel & tourism intelligence datasets.
+                    </p>
+
+                    <!-- POI Filter Tabs -->
+                    <div class="poi-filter-bar">
+                        <button class="poi-filter-btn active" data-filter="all" onclick="filterPOIs('all', this)">📍 All ({{ pois|length }})</button>
+                        <button class="poi-filter-btn" data-filter="hotel" onclick="filterPOIs('hotel', this)">🏨 Hotels</button>
+                        <button class="poi-filter-btn" data-filter="restaurant" onclick="filterPOIs('restaurant', this)">🍽️ Dining</button>
+                        <button class="poi-filter-btn" data-filter="attraction" onclick="filterPOIs('attraction', this)">🎭 Attractions</button>
+                    </div>
+
+                    <div class="poi-grid">
+                        {% for poi in pois %}
+                        <div class="poi-card" data-poi-type="{{ poi.poi_type }}">
+                            <div>
+                                <div class="poi-card-header">
+                                    <span class="poi-type-badge poi-type-{{ poi.poi_type }}">
+                                        {% if poi.poi_type == 'hotel' %}🏨 Hotel
+                                        {% elif poi.poi_type == 'restaurant' %}🍽️ Dining
+                                        {% else %}🎭 Attraction{% endif %}
+                                    </span>
+                                    {% if poi.price_range %}
+                                    <span class="poi-price">{{ poi.price_range }}</span>
+                                    {% endif %}
+                                </div>
+                                <h4 class="poi-name">{{ poi.name }}</h4>
+                                {% if poi.categories %}
+                                <p class="poi-categories">{{ poi.categories }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="poi-card-footer">
+                                <span class="poi-stars"><i class="fas fa-star"></i> {{ poi.stars }}</span>
+                                {% if poi.address %}
+                                <span class="poi-address" title="{{ poi.address }}"><i class="fas fa-location-dot"></i> {{ poi.address }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Reviews -->
+                <div class="card">
+                    <h2><i class="fas fa-star"></i> Reviews ({{ reviews|length }})</h2>
+
+                    {% if current_user.is_authenticated and not user_reviewed %}
+                    <form method="POST" action="{{ url_for('add_review', dest_id=destination.id) }}" class="review-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <h3>Write a Review</h3>
+                        <div class="star-rating" id="starRating">
+                            {% for i in range(1, 6) %}
+                            <i class="fas fa-star star" data-value="{{ i }}" onclick="setRating({{ i }})"></i>
+                            {% endfor %}
+                            <input type="hidden" name="rating" id="ratingInput" value="5">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="title" placeholder="Review title (optional)" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <textarea name="comment" placeholder="Share your experience..." rows="3" class="form-input"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Submit Review</button>
+                    </form>
+                    <hr style="border-color: var(--border); margin: 1.5rem 0;">
+                    {% endif %}
+
+                    {% if reviews %}
+                        {% for review in reviews %}
+                        <div class="review-item">
+                            <div class="review-header">
+                                <div class="review-user">
+                                    <i class="fas fa-user-circle"></i>
+                                    <strong>{{ review.user.username }}</strong>
+                                </div>
+                                <div class="review-rating">
+                                    {% for i in range(review.rating|int) %}<i class="fas fa-star"></i>{% endfor %}
+                                    {% for i in range(5 - review.rating|int) %}<i class="far fa-star"></i>{% endfor %}
+                                </div>
+                            </div>
+                            {% if review.title %}<h4>{{ review.title }}</h4>{% endif %}
+                            <p>{{ review.comment }}</p>
+                            <span class="review-date">{{ review.created_at.strftime('%b %d, %Y') }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No reviews yet. Be the first to review!</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="dest-sidebar">
+                <div class="card sticky-card">
+                    <h3><i class="fas fa-plane"></i> Plan a Trip Here</h3>
+                    <p>Let AI create a personalized itinerary for {{ destination.name }}.</p>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('plan_trip') }}?destination={{ destination.name }}" class="btn btn-primary btn-block">
+                        <i class="fas fa-route"></i> Generate Itinerary
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-primary btn-block">
+                        <i class="fas fa-sign-in-alt"></i> Login to Plan
+                    </a>
+                    {% endif %}
+                </div>
+
+                <div class="card">
+                    <h3><i class="fas fa-info-circle"></i> Quick Info</h3>
+                    <div class="info-list">
+                        <div class="info-item"><span>Category</span><strong>{{ destination.category }}</strong></div>
+                        <div class="info-item"><span>Best Time</span><strong>{{ destination.best_time }}</strong></div>
+                        <div class="info-item"><span>Avg Cost/Day</span><strong>${{ destination.avg_cost_per_day|int }}</strong></div>
+                        <div class="info-item"><span>Rating</span><strong>⭐ {{ destination.rating }}/5</strong></div>
+                        <div class="info-item"><span>Reviews</span><strong>{{ destination.review_count }}</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% block extra_js %}
+<script>
+function setRating(value) {
+    document.getElementById('ratingInput').value = value;
+    const stars = document.querySelectorAll('#starRating .star');
+    stars.forEach((star, index) => {
+        star.classList.toggle('active', index < value);
+    });
+}
+// Initialize with 5 stars
+document.addEventListener('DOMContentLoaded', () => setRating(5));
+
+// POI filter tabs — show/hide cards by type without page reload
+function filterPOIs(type, btn) {
+    document.querySelectorAll('.poi-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.poi-card').forEach(card => {
+        card.style.display = (type === 'all' || card.dataset.poiType === type) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Plan a Trip{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h1><i class="fas fa-route"></i> Plan Your <span class="gradient-text">Perfect Trip</span></h1>
+            <p class="section-subtitle">Fill in your preferences and let AI craft a personalized itinerary.</p>
+        </div>
+
+        <!-- Quick Inspiration Buttons -->
+        <div class="inspiration-bar">
+            <span class="inspiration-label"><i class="fas fa-lightbulb" style="color: var(--lime);"></i> Quick Inspiration:</span>
+            <button type="button" class="inspiration-chip" onclick="applyInspiration('Paris, France', 5, 'Luxury ($150-400/day)', 'Romantic Getaway', ['History & Culture', 'Food & Cuisine', 'Art & Museums'])">🗼 Romantic Paris</button>
+            <button type="button" class="inspiration-chip" onclick="applyInspiration('Bali, Indonesia', 7, 'Mid-Range ($50-150/day)', 'Relaxed & Easy', ['Beaches & Nature', 'Wellness & Spa', 'Food & Cuisine'])">🏖️ Tropical Bali</button>
+            <button type="button" class="inspiration-chip" onclick="applyInspiration('Nashville, USA', 4, 'Mid-Range ($50-150/day)', 'Adventure & Action', ['Music & Festivals', 'Food & Cuisine', 'Nightlife'])">🎶 Nashville Music</button>
+            <button type="button" class="inspiration-chip" onclick="applyInspiration('Tokyo, Japan', 6, 'Mid-Range ($50-150/day)', 'Cultural Deep Dive', ['History & Culture', 'Food & Cuisine', 'Shopping'])">🏯 Tokyo Culture</button>
+            <button type="button" class="inspiration-chip" onclick="applyInspiration('Banff, Canada', 5, 'Mid-Range ($50-150/day)', 'Adventure & Action', ['Hiking & Outdoors', 'Photography', 'Beaches & Nature'])">🏔️ Banff Outdoors</button>
+        </div>
+
+        {% if suggested_destinations %}
+        <div class="destination-suggestions">
+            <div class="destination-suggestions-heading">
+                <div>
+                    <span class="suggestion-eyebrow">EXPLORE THE DATABASE</span>
+                    <h2>Popular destinations</h2>
+                </div>
+                <a href="{{ url_for('destinations') }}" class="admin-text-link">Browse all <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="destination-suggestion-grid">
+                {% for destination in suggested_destinations %}
+                <button type="button" class="destination-suggestion-card"
+                        data-destination="{{ destination.name }}{% if destination.country %}, {{ destination.country }}{% endif %}">
+                    <span class="destination-suggestion-image"
+                          style="background-image: linear-gradient(135deg, rgba(10,20,17,.15), rgba(10,20,17,.55)), url('{{ destination.image_url or '/static/images/destination-placeholder.svg' }}')"></span>
+                    <span class="destination-suggestion-copy">
+                        <strong>{{ destination.name }}</strong>
+                        <small>{{ destination.city or destination.country or 'Explore destination' }}{% if destination.country and destination.city %}, {{ destination.country }}{% endif %}</small>
+                        <span><i class="fas fa-star"></i> {{ destination.rating or 'New' }} · {{ destination.category }}</span>
+                    </span>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="plan-container">
+            <form method="POST" class="plan-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="card">
+                    <h2><i class="fas fa-map-marker-alt"></i> Destination & Duration</h2>
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label for="destination">📍 Where do you want to go? *</label>
+                            <input type="text" id="destination" name="destination" required placeholder="e.g., Tokyo, Japan" value="{{ request.args.get('destination', '') }}" class="form-input" list="destinationsList" autocomplete="off">
+                            <datalist id="destinationsList">
+                                {% if top_destinations is defined %}
+                                {% for d in top_destinations %}
+                                <option value="{{ d }}">
+                                {% endfor %}
+                                {% endif %}
+                            </datalist>
+                        </div>
+                        <div class="form-group">
+                            <label for="duration">📅 Trip Duration (days)</label>
+                            <input type="number" id="duration" name="duration" min="1" max="30" value="5" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label for="start_date">📆 Start Date (optional)</label>
+                            <input type="date" id="start_date" name="start_date" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="travelers">👥 Number of Travelers</label>
+                            <input type="number" id="travelers" name="travelers" min="1" max="20" value="2" class="form-input">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-sliders-h"></i> Preferences</h2>
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label for="budget">💰 Budget Level</label>
+                            <select id="budget" name="budget" class="form-input">
+                                <option value="Budget / Backpacker ($20-50/day)">Budget / Backpacker ($20-50/day)</option>
+                                <option value="Mid-Range ($50-150/day)" selected>Mid-Range ($50-150/day)</option>
+                                <option value="Luxury ($150-400/day)">Luxury ($150-400/day)</option>
+                                <option value="Ultra-Luxury ($400+/day)">Ultra-Luxury ($400+/day)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="travel_style">🧳 Travel Style</label>
+                            <select id="travel_style" name="travel_style" class="form-input">
+                                <option value="Relaxed & Easy">Relaxed & Easy</option>
+                                <option value="Balanced Mix" selected>Balanced Mix</option>
+                                <option value="Adventure & Action">Adventure & Action</option>
+                                <option value="Cultural Deep Dive">Cultural Deep Dive</option>
+                                <option value="Romantic Getaway">Romantic Getaway</option>
+                                <option value="Family Friendly">Family Friendly</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🎯 Interests</label>
+                        <div class="interests-grid">
+                            {% set interest_list = ['History & Culture', 'Food & Cuisine', 'Beaches & Nature', 'Art & Museums', 'Shopping', 'Hiking & Outdoors', 'Photography', 'Nightlife', 'Wellness & Spa', 'Sports', 'Music & Festivals', 'Architecture'] %}
+                            {% for interest in interest_list %}
+                            <label class="interest-tag">
+                                <input type="checkbox" name="interests" value="{{ interest }}" {% if interest in ['Food & Cuisine', 'History & Culture'] %}checked{% endif %}>
+                                <span>{{ interest }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2><i class="fas fa-edit"></i> Additional Details</h2>
+                    <div class="form-group">
+                        <label for="special_requests">📝 Special Requests (optional)</label>
+                        <textarea id="special_requests" name="special_requests" rows="3" placeholder="e.g., vegetarian food options, wheelchair accessible, avoid crowded places..." class="form-input"></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg btn-block" id="generateBtn">
+                    <i class="fas fa-magic"></i> Generate My Travel Plan
+                </button>
+                <p class="text-center text-muted" style="margin-top: 0.5rem; font-size: 0.85rem;">
+                    This may take 15-30 seconds. AI will create a detailed day-by-day itinerary for you.
+                </p>
+            </form>
+        </div>
+    </div>
+</section>
+
+{% block extra_js %}
+<script>
+document.querySelector('.plan-form').addEventListener('submit', function() {
+    const btn = document.getElementById('generateBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating... Please wait';
+    btn.disabled = true;
+});
+
+function applyInspiration(dest, days, budget, style, interests) {
+    document.getElementById('destination').value = dest;
+    document.getElementById('duration').value = days;
+    // Set budget select
+    const budgetEl = document.getElementById('budget');
+    for (let opt of budgetEl.options) {
+        if (opt.value === budget) { opt.selected = true; break; }
+    }
+    // Set travel style select
+    const styleEl = document.getElementById('travel_style');
+    for (let opt of styleEl.options) {
+        if (opt.value === style) { opt.selected = true; break; }
+    }
+    // Set interests checkboxes
+    document.querySelectorAll('input[name="interests"]').forEach(cb => {
+        cb.checked = interests.includes(cb.value);
+    });
+    // Scroll to form
+    document.querySelector('.plan-container').scrollIntoView({ behavior: 'smooth' });
+}
+
+document.querySelectorAll('.destination-suggestion-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+        applyInspiration(
+            card.dataset.destination,
+            5,
+            'Mid-Range ($50-150/day)',
+            'Balanced Mix',
+            ['Food & Cuisine', 'History & Culture']
+        );
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Budget Calculator{% endblock %}
+
+{% block extra_css %}
+<style>
+.budget-layout { display: grid; grid-template-columns: minmax(280px, 380px) minmax(0, 1fr); gap: 24px; align-items: start; }
+.budget-card { border: 1px solid var(--line); background: var(--ink-soft); padding: 28px; }
+.budget-card h2 { margin: 0 0 22px; font: 700 20px 'Manrope', sans-serif; }
+.budget-card .form-group { margin-bottom: 18px; }
+.budget-card select.form-input, .budget-card input.form-input { background: #111a17; }
+.budget-result { min-width: 0; }
+.budget-result-body { overflow-wrap: anywhere; }
+.budget-result-body table { width: 100%; border-collapse: collapse; margin: 18px 0; }
+.budget-result-body th, .budget-result-body td { padding: 10px; border: 1px solid var(--line); text-align: left; }
+.budget-result-body th { background: #111a17; color: var(--lime); }
+.budget-result-body h1, .budget-result-body h2, .budget-result-body h3 { color: var(--paper); }
+.budget-result-body a { color: var(--lime); }
+.budget-empty { display: grid; min-height: 280px; place-items: center; text-align: center; color: var(--muted); }
+.budget-empty i { display: block; margin-bottom: 16px; color: var(--lime); font-size: 38px; }
+@media (max-width: 800px) { .budget-layout { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h1><i class="fas fa-calculator"></i> AI Budget <span class="gradient-text">Calculator</span></h1>
+            <p class="section-subtitle">Get an estimated trip budget tailored to your destination, duration, and travel style.</p>
+        </div>
+
+        <div class="budget-layout">
+            <div class="budget-card">
+                <h2><i class="fas fa-wallet"></i> Trip Details</h2>
+                <form method="POST" action="{{ url_for('budget_calculator') }}" id="budgetForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-group">
+                        <label for="destination">Destination *</label>
+                        <input type="text" id="destination" name="destination" class="form-input" required
+                               placeholder="e.g., Tokyo, Japan"
+                               value="{{ request.form.get('destination', request.args.get('destination', '')) }}"
+                               list="budgetDestinations" autocomplete="off">
+                        <datalist id="budgetDestinations">
+                            {% for destination in budget_destinations %}
+                            <option value="{{ destination.name }}{% if destination.country %}, {{ destination.country }}{% endif %}">
+                            {% endfor %}
+                        </datalist>
+                    </div>
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label for="duration">Duration (days)</label>
+                            <input type="number" id="duration" name="duration" class="form-input" min="1" max="365"
+                                   value="{{ request.form.get('duration', 5) }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="travelers">Travelers</label>
+                            <input type="number" id="travelers" name="travelers" class="form-input" min="1" max="50"
+                                   value="{{ request.form.get('travelers', 1) }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="budget_level">Budget level</label>
+                        <select id="budget_level" name="budget_level" class="form-input">
+                            {% set selected_level = request.form.get('budget_level', 'Mid-Range') %}
+                            <option value="Budget" {% if selected_level == 'Budget' %}selected{% endif %}>Budget / Backpacker</option>
+                            <option value="Mid-Range" {% if selected_level == 'Mid-Range' %}selected{% endif %}>Mid-Range</option>
+                            <option value="Luxury" {% if selected_level == 'Luxury' %}selected{% endif %}>Luxury</option>
+                            <option value="Ultra-Luxury" {% if selected_level == 'Ultra-Luxury' %}selected{% endif %}>Ultra-Luxury</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg btn-block" id="budgetSubmit">
+                        <i class="fas fa-magic"></i> Calculate Budget
+                    </button>
+                </form>
+            </div>
+
+            <div class="budget-card budget-result">
+                <h2><i class="fas fa-chart-pie"></i> Estimated Budget</h2>
+                {% if result %}
+                <div class="budget-result-body">{{ result | md | safe }}</div>
+                {% else %}
+                <div class="budget-empty">
+                    <div><i class="fas fa-coins"></i>
+                        <p>Your personalized budget breakdown will appear here.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('budgetForm').addEventListener('submit', function () {
+    const button = document.getElementById('budgetSubmit');
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating...';
+});
+</script>
+{% endblock %}

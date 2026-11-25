@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Browse the complete Aster watch collection.">
+  <title>The Collection | Aster Watches</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Aster Watches home">ASTER<span>.</span></a>
+    <nav class="main-nav" aria-label="Main navigation">
+      <a href="index.html">Home</a>
+      <a class="active" href="collection.html">Collection</a>
+      <a href="index.html#story">Our story</a>
+    </nav>
+    <button class="cart-button" id="cartButton" type="button" aria-label="Open shopping bag">Bag <span id="cartCount">0</span></button>
+  </header>
+
+  <main>
+    <section class="page-title">
+      <p class="eyebrow">The collection</p>
+      <h1>Find your timepiece</h1>
+      <p>Simple forms, lasting materials, and colours that work with everything.</p>
+    </section>
+
+    <div class="filters" aria-label="Filter watches">
+      <button class="filter active" data-filter="all">All watches</button>
+      <button class="filter" data-filter="steel">Steel</button>
+      <button class="filter" data-filter="leather">Leather</button>
+    </div>
+
+    <section class="catalog" aria-live="polite">
+      <article class="catalog-item" id="solstice" data-category="steel">
+        <div class="catalog-image"><img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=85" alt="Solstice silver watch"></div>
+        <div class="catalog-details"><p class="eyebrow">Moonlight Steel</p><h2>Solstice</h2><p>A clean silver dial framed by polished steel. Minimal, balanced and easy to wear.</p><div><strong>$189</strong><button class="add-button" data-name="Solstice" data-price="189">Add to bag</button></div></div>
+      </article>
+      <article class="catalog-item" id="nocturne" data-category="leather">
+        <div class="catalog-image"><img src="https://images.unsplash.com/photo-1524592094714-0f0654e20314?auto=format&fit=crop&w=900&q=85" alt="Nocturne black watch"></div>
+        <div class="catalog-details"><p class="eyebrow">Midnight Leather</p><h2>Nocturne</h2><p>A deep black dial and soft leather strap make a refined everyday statement.</p><div><strong>$215</strong><button class="add-button" data-name="Nocturne" data-price="215">Add to bag</button></div></div>
+      </article>
+      <article class="catalog-item" id="terra" data-category="leather">
+        <div class="catalog-image"><img src="https://images.unsplash.com/photo-1547996160-81dfa63595aa?auto=format&fit=crop&w=900&q=85" alt="Terra classic watch"></div>
+        <div class="catalog-details"><p class="eyebrow">Warm Sand</p><h2>Terra</h2><p>Warm tones and a classic profile inspired by long roads and open landscapes.</p><div><strong>$199</strong><button class="add-button" data-name="Terra" data-price="199">Add to bag</button></div></div>
+      </article>
+      <article class="catalog-item" data-category="steel">
+        <div class="catalog-image"><img src="https://images.unsplash.com/photo-1539874754764-5a96559165b0?auto=format&fit=crop&w=900&q=85" alt="Orbit steel watch"></div>
+        <div class="catalog-details"><p class="eyebrow">Brushed Steel</p><h2>Orbit</h2><p>A modern architectural case with a precise, easy-to-read two-tone dial.</p><div><strong>$229</strong><button class="add-button" data-name="Orbit" data-price="229">Add to bag</button></div></div>
+      </article>
+    </section>
+  </main>
+
+  <footer><a class="brand" href="index.html">ASTER<span>.</span></a><p>Designed for wherever time takes you.</p><p>© 2026 Aster Watches</p></footer>
+  <div class="bag-panel" id="bagPanel" aria-hidden="true">
+    <div class="bag-header"><h2>Your bag</h2><button id="closeBag" aria-label="Close bag">×</button></div>
+    <div id="bagItems"><p>Your bag is empty.</p></div>
+  </div>
+  <div class="overlay" id="overlay"></div>
+  <script src="script.js"></script>
+</body>
+</html>

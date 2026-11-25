@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI Travel Planner — Your personal AI travel assistant. Plan trips, discover destinations, and get personalized itineraries.">
+    <title>{% block title %}AI Travel Planner{% endblock %} | TravelAI ✈️</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- ── Navigation ── -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="nav-logo">
+                <i class="fas fa-globe-americas"></i>
+                <span>TravelAI</span>
+            </a>
+
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+                <span></span><span></span><span></span>
+            </button>
+
+            <ul class="nav-links" id="navLinks">
+                <li><a href="{{ url_for('destinations') }}" class="nav-link"><i class="fas fa-map-marker-alt"></i> Destinations</a></li>
+                {% if current_user.is_authenticated %}
+                    {% if current_user.is_admin %}
+                        <li><a href="{{ url_for('admin_dashboard') }}" class="nav-link"><i class="fas fa-gauge-high"></i> Admin</a></li>
+                        <li><a href="{{ url_for('admin_users') }}" class="nav-link"><i class="fas fa-users"></i> Users</a></li>
+                    {% else %}
+                        <li><a href="{{ url_for('plan_trip') }}" class="nav-link"><i class="fas fa-route"></i> Plan Trip</a></li>
+                        <li><a href="{{ url_for('budget_calculator') }}" class="nav-link"><i class="fas fa-calculator"></i> Budget</a></li>
+                        <li><a href="{{ url_for('chatbot') }}" class="nav-link"><i class="fas fa-robot"></i> Chat</a></li>
+                    {% endif %}
+                    <li class="nav-dropdown">
+                        <button class="nav-link dropdown-toggle">
+                            {% if current_user.avatar_url %}
+                            <img src="{{ current_user.avatar_url }}" alt="avatar" class="nav-avatar-img">
+                            {% else %}
+                            <i class="fas fa-user-circle"></i>
+                            {% endif %}
+                            <span>{{ current_user.username }}</span>
+                        </button>
+                        <div class="dropdown-menu">
+                            {% if current_user.is_admin %}
+                            <a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-gauge-high"></i> Admin Dashboard</a>
+                            <a href="{{ url_for('admin_users') }}"><i class="fas fa-users"></i> Manage Users</a>
+                            {% else %}
+                            <a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                            <a href="{{ url_for('my_trips') }}"><i class="fas fa-suitcase"></i> My Trips</a>
+                            {% endif %}
+                            <a href="{{ url_for('profile') }}"><i class="fas fa-user-edit"></i> Profile</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        </div>
+                    </li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}" class="nav-link"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                    <li><a href="{{ url_for('register') }}" class="nav-link btn-nav-signup">Get Started</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <!-- ── Flash Messages ── -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container">
+            {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}" onclick="this.remove()">
+                <i class="fas {% if category == 'success' %}fa-check-circle{% elif category == 'danger' %}fa-exclamation-circle{% elif category == 'warning' %}fa-exclamation-triangle{% else %}fa-info-circle{% endif %}"></i>
+                <span>{{ message }}</span>
+                <button class="flash-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- ── Main Content ── -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ── Footer ── -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <h3><i class="fas fa-globe-americas"></i> TravelAI</h3>
+                    <p>Your AI-powered travel companion. Plan trips, discover destinations, and explore the world smarter.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <a href="{{ url_for('destinations') }}">Destinations</a>
+                    {% if current_user.is_authenticated %}
+                    {% if current_user.is_admin %}
+                    <a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
+                    {% else %}
+                    <a href="{{ url_for('plan_trip') }}">Plan a Trip</a>
+                    <a href="{{ url_for('budget_calculator') }}">Budget Calculator</a>
+                    {% endif %}
+                    {% else %}
+                    <a href="{{ url_for('register') }}">Sign Up</a>
+                    <a href="{{ url_for('login') }}">Login</a>
+                    {% endif %}
+                </div>
+                <div class="footer-links">
+                    <h4>Features</h4>
+                    <a href="#">AI Trip Planning</a>
+                    <a href="#">Smart Budget</a>
+                    <a href="#">Travel Chatbot</a>
+                    <a href="#">Reviews & Ratings</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 TravelAI</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ── Scripts ── -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

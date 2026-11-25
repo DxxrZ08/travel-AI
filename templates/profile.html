@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Your Profile{% endblock %}
+
+{% block content %}
+<section class="account-section">
+    <div class="container account-container">
+        <header class="account-heading">
+            <p class="auth-eyebrow">YOUR ACCOUNT</p>
+            <h1>Profile settings</h1>
+            <p>Keep your account and travel preferences up to date.</p>
+        </header>
+        <div class="profile-layout">
+            <aside class="profile-summary">
+                {% if current_user.avatar_url %}
+                <img src="{{ current_user.avatar_url }}" alt="avatar" class="profile-avatar-img">
+                {% else %}
+                <div class="profile-avatar">{{ (current_user.full_name or current_user.username)[:1]|upper }}</div>
+                {% endif %}
+                <h2>{{ current_user.full_name or current_user.username }}</h2>
+                <p>{{ current_user.email }}</p>
+                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+                    <span class="role-badge">{{ current_user.role|title }}</span>
+                    {% if current_user.auth_provider == 'google' %}
+                    <span class="role-badge role-provider"><i class="fab fa-google"></i> Google User</span>
+                    {% elif current_user.firebase_uid %}
+                    <span class="role-badge role-provider"><i class="fas fa-fire"></i> Firebase User</span>
+                    {% endif %}
+                </div>
+                <div class="profile-summary-detail">
+                    <span>Member since</span>
+                    <strong>{{ current_user.created_at.strftime('%B %Y') }}</strong>
+                </div>
+                {% if current_user.is_admin %}
+                <a class="profile-dashboard-link" href="{{ url_for('admin_dashboard') }}">Open admin dashboard <i class="fas fa-arrow-right"></i></a>
+                {% else %}
+                <a class="profile-dashboard-link" href="{{ url_for('dashboard') }}">Open my dashboard <i class="fas fa-arrow-right"></i></a>
+                {% endif %}
+            </aside>
+            <form method="POST" class="profile-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="account-form-heading">
+                    <h2>Personal details</h2>
+                    <p>Your information is only used to personalize your account.</p>
+                </div>
+                <div class="account-field-grid">
+                    <div class="account-field">
+                        <label for="full_name">Full name</label>
+                        <input id="full_name" name="full_name" value="{{ current_user.full_name }}" autocomplete="name" maxlength="150">
+                    </div>
+                    <div class="account-field">
+                        <label for="email">Email address</label>
+                        <input id="email" name="email" type="email" value="{{ current_user.email }}" required autocomplete="email" maxlength="120">
+                    </div>
+                    <div class="account-field">
+                        <label for="favorite_destination">Favorite destination</label>
+                        <input id="favorite_destination" name="favorite_destination" value="{{ current_user.favorite_destination }}" placeholder="A place you love or want to visit">
+                    </div>
+                    <div class="account-field">
+                        <label for="travel_style">Travel style</label>
+                        <select id="travel_style" name="travel_style">
+                            {% for style in ['Balanced Mix', 'Culture & History', 'Food & Drink', 'Nature & Outdoors', 'Relaxed', 'Adventure'] %}
+                            <option value="{{ style }}" {% if current_user.travel_style == style %}selected{% endif %}>{{ style }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="account-field account-field-wide">
+                        <label for="bio">About you</label>
+                        <textarea id="bio" name="bio" rows="4" maxlength="1000" placeholder="What do you enjoy when you travel?">{{ current_user.bio }}</textarea>
+                    </div>
+                </div>
+                <div class="account-form-actions"><button class="btn btn-primary" type="submit">Save profile <i class="fas fa-arrow-right"></i></button></div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
