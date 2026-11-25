@@ -391,7 +391,8 @@ def seed_database(app=None):
 
     try:
         # Clean / verify DB connection
-        print("Connected to database:", active_app.config["SQLALCHEMY_DATABASE_URI"])
+        # Never print DATABASE_URL: it contains database credentials on hosted deployments.
+        print("Connected to configured database.")
 
         trips_csv = os.path.join(active_app.root_path, "data", "user_trips_dataset.csv")
         dest_txt = os.path.join(active_app.root_path, "data", "world_destinations_raw.txt")
