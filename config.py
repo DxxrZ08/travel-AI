@@ -10,8 +10,16 @@ load_dotenv()
 
 class Config:
     """Base configuration."""
-    SECRET_KEY = os.getenv("SECRET_KEY", "travel-planner-secret-key-change-in-production")
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///travel_planner.db")
+    SECRET_KEY = os.getenv("SECRET_KEY")
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    if os.getenv("VERCEL") and not DATABASE_URL:
+        raise RuntimeError("DATABASE_URL must point to a persistent database on Vercel")
+    if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
+    elif DATABASE_URL and DATABASE_URL.startswith("postgresql://"):
+        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL or "sqlite:///travel_planner.db"
+    SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True, "pool_recycle": 300} if DATABASE_URL else {}
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY", "")
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max upload

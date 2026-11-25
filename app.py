@@ -7,6 +7,9 @@ import os
 import uuid
 import secrets
 import hmac
+import re
+from html import escape
+from html.parser import HTMLParser
 import markdown
 import click
 from datetime import datetime, timezone
@@ -51,16 +54,93 @@ def safe_next_url(target):
     return target
 
 
+URL_EDGE_CHARS = "".join(chr(code) for code in range(0x21))
+
+
+def normalize_url_value(value):
+    normalized = value.strip().strip(URL_EDGE_CHARS)
+    if any(ord(character) < 0x20 for character in normalized):
+        return None
+    return normalized
+
+
+class SafeMarkdownHTML(HTMLParser):
+    """Keep Markdown formatting while removing raw HTML and unsafe links."""
+    ALLOWED_TAGS = {"p", "br", "hr", "strong", "em", "b", "i", "del", "blockquote", "ul", "ol", "li", "h1", "h2", "h3", "h4", "h5", "h6", "pre", "code", "table", "thead", "tbody", "tr", "th", "td", "a", "img"}
+    VOID_TAGS = {"br", "hr", "img"}
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.parts = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag not in self.ALLOWED_TAGS:
+            return
+        safe_attrs = []
+        seen_attributes = set()
+        for name, value in attrs:
+            if name in seen_attributes:
+                continue
+            seen_attributes.add(name)
+            if value is None:
+                continue
+            if name in {"title", "alt"}:
+                safe_attrs.append(f' {name}="{escape(value, quote=True)}"')
+            elif name == "href" and tag == "a":
+                normalized_value = normalize_url_value(value)
+                if normalized_value is None:
+                    continue
+                try:
+                    parsed = urlsplit(normalized_value)
+                except ValueError:
+                    continue
+                if parsed.scheme.lower() in {"", "http", "https", "mailto"} and not normalized_value.startswith("//"):
+                    safe_attrs.append(f' href="{escape(normalized_value, quote=True)}"')
+            elif name == "src" and tag == "img":
+                normalized_value = normalize_url_value(value)
+                if normalized_value is None:
+                    continue
+                try:
+                    parsed = urlsplit(normalized_value)
+                except ValueError:
+                    continue
+                if parsed.scheme.lower() in {"http", "https"} or (not parsed.scheme and normalized_value and not normalized_value.startswith("//")):
+                    safe_attrs.append(f' src="{escape(normalized_value, quote=True)}"')
+        self.parts.append(f"<{tag}{''.join(safe_attrs)}>")
+
+    def handle_endtag(self, tag):
+        if tag in self.ALLOWED_TAGS and tag not in self.VOID_TAGS:
+            self.parts.append(f"</{tag}>")
+
+    def handle_data(self, data):
+        self.parts.append(escape(data))
+
+    def sanitized_html(self):
+        return "".join(self.parts)
+
+
+def sanitize_markdown_html(rendered_html):
+    # Escape bare ampersands before HTMLParser decodes semicolonless entities in URLs.
+    rendered_html = re.sub(
+        r"&(?!#(?:[0-9]+|[xX][0-9a-fA-F]+);|[A-Za-z][A-Za-z0-9]+;)",
+        "&amp;",
+        rendered_html,
+    )
+    sanitizer = SafeMarkdownHTML()
+    sanitizer.feed(rendered_html)
+    sanitizer.close()
+    return sanitizer.sanitized_html()
+
 # ── App Factory ──────────────────────────────────────────────────────────────
 def create_app(config_name=None):
     """Create and configure the Flask application."""
     if config_name is None:
-        config_name = os.getenv("FLASK_ENV", "default")
+        config_name = os.getenv("FLASK_ENV") or ("production" if os.getenv("VERCEL") else "default")
 
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder="public/static", static_url_path="/static")
     app.config.from_object(config[config_name])
-    if config_name == "production" and not app.config.get("SECRET_KEY"):
-        raise RuntimeError("SECRET_KEY must be configured when FLASK_ENV=production")
+    if not app.config.get("SECRET_KEY"):
+        raise RuntimeError("SECRET_KEY must be configured for every application worker")
 
     def csrf_token():
         token = session.get("csrf_token")
@@ -98,7 +178,8 @@ def create_app(config_name=None):
     def markdown_filter(text):
         if not text:
             return ""
-        return markdown.markdown(text, extensions=["tables", "fenced_code", "nl2br"])
+        rendered = markdown.markdown(str(text), extensions=["tables", "fenced_code", "nl2br"])
+        return sanitize_markdown_html(rendered)
 
     # Create tables
     with app.app_context():
@@ -840,8 +921,15 @@ def create_app(config_name=None):
     @login_required
     def chat_send():
         """Send a message to the chatbot (AJAX)."""
-        data = request.get_json()
-        user_message = data.get("message", "").strip()
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict):
+            return jsonify({"error": "Expected a JSON object"}), 400
+        user_message = data.get("message", "")
+        if not isinstance(user_message, str):
+            return jsonify({"error": "Message must be text"}), 400
+        user_message = user_message.strip()
+        if len(user_message) > 2000:
+            return jsonify({"error": "Message must be 2000 characters or fewer"}), 400
 
         if not user_message:
             return jsonify({"error": "Empty message"}), 400

@@ -8,13 +8,23 @@ AI Travel Planner is a full-stack web application for discovering destinations, 
 |---|---|
 | Backend | Python and Flask |
 | Authentication | Flask-Login and Werkzeug password hashing |
-| Database | SQLite through Flask-SQLAlchemy |
+| Database | SQLite locally and PostgreSQL for Vercel through Flask-SQLAlchemy |
 | Frontend | HTML, Jinja templates, CSS, and JavaScript |
 | AI service | NVIDIA NIM through the OpenAI-compatible Python client |
 | Configuration | Environment variables with python-dotenv |
 | Markdown rendering | Python-Markdown |
 
 ## 2. How to Run the Project
+
+### Required session secret
+
+Set a stable, random `SECRET_KEY` in the ignored `.env` file before starting the app. The same value must be configured for every application worker. Keep `.env` and all service-account files out of Git; the app refuses to start if `SECRET_KEY` is missing.
+
+Generate a value locally with:
+
+```powershell
+python -c "import secrets; print(secrets.token_hex(32))"
+```
 
 ### Requirements
 
@@ -29,6 +39,10 @@ python app.py
 ```
 
 Then open **http://127.0.0.1:5000**.
+
+### Vercel hosting
+
+Vercel serves the Flask app from `app.py` and static assets from `public/static/`. Use a persistent PostgreSQL database for Vercel; SQLite files are local-only and do not persist reliably in serverless functions. Connect a Neon or other PostgreSQL Marketplace database to the Vercel project so it provides `DATABASE_URL`, and configure a stable `SECRET_KEY` in Vercel's encrypted environment variables. Add `NVIDIA_API_KEY` to enable AI features. Firebase sign-in is optional; if enabled, store the Firebase Admin service-account JSON as the `FIREBASE_SERVICE_ACCOUNT_KEY` environment variable, not as a deployed file. Never upload `.env`, database files, or service-account files with the source.
 
 On first startup, the application:
 

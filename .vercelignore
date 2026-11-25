@@ -1,0 +1,17 @@
+# Keep local secrets, databases, and development tools out of deployments.
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+.git/
+__pycache__/
+*.py[cod]
+instance/
+*.db
+**/serviceAccountKey.json
+**/*service-account*.json
+**/*service_account*.json
+**/*firebase-adminsdk*.json
+**/*.pem
+**/*.p12

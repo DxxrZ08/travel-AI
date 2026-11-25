@@ -26,3 +26,6 @@ venv/
 
 # Local editor configuration
 /.vscode/
+
+# Vercel project link metadata
+.vercel/
