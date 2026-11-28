@@ -7,6 +7,7 @@ import os
 import re
 import csv
 import random
+import hashlib
 from app import create_app
 from models import db, Destination, Trip, User
 
@@ -164,6 +165,62 @@ CURATED_DATA = {
         "is_featured": True,
         "best_time": "October to April",
     },
+    "Minsk": {
+        "category": "Cultural",
+        "description": "Belarus’s capital blends broad historic avenues, grand civic architecture, leafy parks, and lively cafés around the Svislach River.",
+        "highlights": "Independence Square, Trinity Hill, Victory Square, Great Patriotic War Museum",
+        "image_url": "https://images.unsplash.com/photo-1731169921081-31d16a3ec92a?w=1000&auto=format&fit=crop&q=85",
+        "is_featured": False,
+        "best_time": "May to September",
+    },
+    "Jahorina": {
+        "category": "Mountain",
+        "description": "A Bosnian mountain resort known for forested slopes, alpine scenery, and year-round hiking and winter sports.",
+        "highlights": "Jahorina Ski Resort, Olympic Center, mountain trails, panoramic viewpoints",
+        "image_url": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1000&auto=format&fit=crop&q=85",
+        "is_featured": False,
+        "best_time": "December to March (skiing), June to September (hiking)",
+    },
+    "Melbourne": {
+        "category": "City",
+        "description": "Australia’s cultural capital pairs a lively arts scene with laneway cafés, distinctive architecture, gardens, and a celebrated waterfront.",
+        "highlights": "Federation Square, Royal Botanic Gardens, Queen Victoria Market, Yarra River",
+        "image_url": "https://images.unsplash.com/photo-1595434971780-79d5c20c5090?w=1000&auto=format&fit=crop&q=85",
+        "is_featured": False,
+        "best_time": "March to May, September to November",
+    },
+    "Zillertal": {
+        "category": "Mountain",
+        "description": "An Austrian alpine valley of high peaks, mountain villages, scenic lifts, hiking trails, and year-round outdoor activities.",
+        "highlights": "Hintertux Glacier, Zillertal High Road, Mayrhofen, alpine hiking trails",
+        "image_url": "https://images.unsplash.com/photo-1648147385426-68b1736c7d8f?w=1000&auto=format&fit=crop&q=85",
+        "is_featured": False,
+        "best_time": "December to March (skiing), June to September (hiking)",
+    },
+    "Yerevan": {
+        "category": "Cultural",
+        "description": "Armenia’s capital is known for rose-colored tuff architecture, lively public squares, museums, and views toward Mount Ararat.",
+        "highlights": "Republic Square, Cascade Complex, Matenadaran, Vernissage Market",
+        "image_url": "https://images.unsplash.com/photo-1660720212485-9d18192c4c8a?w=1000&auto=format&fit=crop&q=85",
+        "is_featured": False,
+        "best_time": "April to June, September to October",
+    },
+    "Uyuni": {
+        "category": "Nature",
+        "description": "A gateway to Bolivia’s immense salt flats, high-altitude lagoons, volcanic landscapes, and surreal Andean horizons.",
+        "highlights": "Salar de Uyuni, Incahuasi Island, Train Cemetery, Eduardo Avaroa Reserve",
+        "image_url": "https://images.unsplash.com/photo-1641755222059-8086a4f8c850?w=1000&auto=format&fit=crop&q=85",
+        "is_featured": False,
+        "best_time": "May to November (dry season), January to March (mirror effect)",
+    },
+    "Butrint": {
+        "category": "Historical",
+        "description": "A UNESCO-listed archaeological park where Greek, Roman, Byzantine, and Venetian remains sit among wetlands and woodland in southern Albania.",
+        "highlights": "Ancient Theatre, Venetian Tower, Baptistery, Lake Butrint",
+        "image_url": "https://images.unsplash.com/photo-1741267087486-ca82e9fde5d7?w=1000&auto=format&fit=crop&q=85",
+        "is_featured": False,
+        "best_time": "April to June, September to October",
+    },
     "Vancouver": {
         "category": "Nature",
         "description": "Seaport surrounded by coastal mountains, ancient temperate rainforests, scenic sea walls, and diverse food neighborhoods.",
@@ -267,6 +324,36 @@ CATEGORY_IMAGES = {
     "Adventure": "https://images.unsplash.com/photo-1526392060635-9d6019884377?w=1000&auto=format&fit=crop&q=80",
     "General": "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1000&auto=format&fit=crop&q=80",
 }
+
+
+def destination_image_url(name, category):
+    """Return a curated city photo or a stable, varied category-matched fallback."""
+    curated = CURATED_DATA.get(name)
+    if curated:
+        return curated["image_url"]
+
+    legacy_fallbacks = set(CATEGORY_IMAGES.values())
+    matching = [
+        item["image_url"]
+        for item in CURATED_DATA.values()
+        if item["category"] == category and item["image_url"] not in legacy_fallbacks
+    ]
+    if category in {"Mountain", "Nature", "Adventure", "Coastal"}:
+        matching.extend(
+            item["image_url"]
+            for item in CURATED_DATA.values()
+            if item["category"] in {"Mountain", "Nature", "Adventure", "Coastal", "Beach"}
+            and item["image_url"] not in legacy_fallbacks
+            and item["image_url"] not in matching
+        )
+    if not matching:
+        matching = [item["image_url"] for item in CURATED_DATA.values()]
+    if not matching:
+        return CATEGORY_IMAGES.get(category, CATEGORY_IMAGES["General"])
+
+    digest = hashlib.sha256(name.casefold().encode("utf-8")).digest()
+    index = int.from_bytes(digest[:4], "big") % len(matching)
+    return matching[index]
 
 
 def parse_trip_costs(csv_path):
@@ -410,6 +497,27 @@ def seed_database(app=None):
             cape_town.image_url = curated_cape_town_image
             db.session.commit()
 
+        # Replace repeated category-only fallback photos in existing production rows.
+        legacy_fallbacks = set(CATEGORY_IMAGES.values())
+        refreshed_images = 0
+        for destination in existing_dests.values():
+            if destination.image_url not in legacy_fallbacks:
+                continue
+            curated = CURATED_DATA.get(destination.name) or CURATED_DATA.get(destination.city)
+            if curated:
+                destination.category = curated["category"]
+                destination.description = curated["description"]
+                destination.highlights = curated["highlights"]
+                destination.image_url = curated["image_url"]
+                destination.is_featured = curated.get("is_featured", False)
+                destination.best_time = curated.get("best_time", "April to October")
+            else:
+                destination.image_url = destination_image_url(destination.name, destination.category)
+            refreshed_images += 1
+        if refreshed_images:
+            db.session.commit()
+            print(f"Refreshed {refreshed_images} destination images from repeated category fallbacks.")
+
         destinations_to_add = []
         seen_names = set(existing_dests.keys())
 
@@ -463,7 +571,7 @@ def seed_database(app=None):
                 location_str = f"{city}, {country}" if country else city
                 description = f"Experience the captivating sights, vibrant local hospitality, and scenic landscapes of {location_str}."
                 highlights = f"{city} Historic Center, Scenic Viewpoints, Local Markets, Cultural Landmarks"
-                image_url = CATEGORY_IMAGES.get(category, CATEGORY_IMAGES["General"])
+                image_url = destination_image_url(name, category)
                 is_featured = False
                 best_time = "April to October"
 
