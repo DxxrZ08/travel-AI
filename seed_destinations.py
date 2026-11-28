@@ -160,7 +160,7 @@ CURATED_DATA = {
         "category": "Nature",
         "description": "Where Table Mountain meets two oceans — featuring coastal drives, penguin colonies, vineyards, and rich coastal history.",
         "highlights": "Table Mountain Cableway, Cape Point, Boulders Beach, V&A Waterfront",
-        "image_url": "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=1000&auto=format&fit=crop&q=85",
+        "image_url": "https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=1000&auto=format&fit=crop&q=85",
         "is_featured": True,
         "best_time": "October to April",
     },
@@ -402,6 +402,13 @@ def seed_database(app=None):
 
         existing_dests = {d.name.lower(): d for d in Destination.query.all()}
         print(f"Current destination count in DB before seeding: {len(existing_dests)}")
+
+        # Keep the curated Cape Town photo accurate for destinations already in persistent databases.
+        cape_town = existing_dests.get("cape town")
+        curated_cape_town_image = CURATED_DATA["Cape Town"]["image_url"]
+        if cape_town and cape_town.image_url != curated_cape_town_image:
+            cape_town.image_url = curated_cape_town_image
+            db.session.commit()
 
         destinations_to_add = []
         seen_names = set(existing_dests.keys())
