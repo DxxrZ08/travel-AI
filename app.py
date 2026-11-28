@@ -400,11 +400,18 @@ def create_app(config_name=None):
         firebase_info = decoded.get("firebase") or {}
         sign_in_provider = str(firebase_info.get("sign_in_provider", "")).lower()
         provider_name = "google" if "google" in sign_in_provider else "firebase"
+        designated_admin_email = os.getenv("TRAVELAI_ADMIN_EMAIL", "").strip().lower()
+        promote_to_admin = (
+            email == designated_admin_email
+            and sign_in_provider == "google.com"
+        )
         name = (decoded.get("name") or "").strip()
         picture = (decoded.get("picture") or "").strip()
 
         if user:
             user.firebase_uid = uid
+            if promote_to_admin:
+                user.role = "admin"
             if picture and not user.avatar_url:
                 user.avatar_url = picture
             if name and not user.full_name:
@@ -427,7 +434,7 @@ def create_app(config_name=None):
                 firebase_uid=uid,
                 avatar_url=picture,
                 auth_provider=provider_name,
-                role="user",
+                role="admin" if promote_to_admin else "user",
             )
             user.set_password(secrets.token_urlsafe(32))
             db.session.add(user)
