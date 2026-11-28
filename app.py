@@ -297,6 +297,13 @@ def create_app(config_name=None):
                 ])
                 db.session.commit()
 
+        try:
+            from seed_destinations import refresh_destination_images
+            refresh_destination_images()
+        except Exception:
+            # Keep startup logs free of database URLs and other connection details.
+            app.logger.warning("Destination image refresh could not be completed.")
+
         for destination in Destination.query.filter(
             Destination.image_url.contains("photo-1503614472-8c93d56cd938")
         ).all():

@@ -356,6 +356,38 @@ def destination_image_url(name, category):
     return matching[index]
 
 
+def refresh_destination_images():
+    """Migrate legacy category-only destination photos to varied curated images."""
+    legacy_fallbacks = set(CATEGORY_IMAGES.values())
+    destinations = Destination.query.filter(
+        Destination.image_url.in_(legacy_fallbacks)
+    ).all()
+    refreshed = 0
+
+    for destination in destinations:
+        curated = CURATED_DATA.get(destination.name) or CURATED_DATA.get(destination.city)
+        if curated:
+            destination.category = curated["category"]
+            destination.description = curated["description"]
+            destination.highlights = curated["highlights"]
+            destination.image_url = curated["image_url"]
+            destination.is_featured = curated.get("is_featured", False)
+            destination.best_time = curated.get("best_time", "April to October")
+        else:
+            destination.image_url = destination_image_url(destination.name, destination.category)
+        refreshed += 1
+
+    cape_town = Destination.query.filter_by(name="Cape Town").first()
+    if cape_town and cape_town.image_url != CURATED_DATA["Cape Town"]["image_url"]:
+        cape_town.image_url = CURATED_DATA["Cape Town"]["image_url"]
+        refreshed += 1
+
+    if refreshed:
+        db.session.commit()
+        print(f"Refreshed {refreshed} destination images from legacy photo assignments.")
+    return refreshed
+
+
 def parse_trip_costs(csv_path):
     """Parse real average daily costs per destination from user_trips_dataset.csv."""
     costs = {}
